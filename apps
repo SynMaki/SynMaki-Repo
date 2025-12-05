@@ -1,0 +1,15 @@
+# Pfad für Logfile
+$logFile = "C:\Temp\UwpAppUpdates.txt"
+if (!(Test-Path "C:\Temp")) { New-Item -ItemType Directory -Path "C:\Temp" | Out-Null }
+
+# Scheduled Task Action
+$Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -Command `"Invoke-CimMethod -Namespace root\cimv2\mdm\dmmap -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 -MethodName UpdateScanMethod | Out-File -FilePath '$logFile' -Append`""
+
+# Trigger in 1 Minute
+$Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
+
+# Task registrieren als SYSTEM
+Register-ScheduledTask -TaskName "UWPUpdateTest" -Action $Action -Trigger $Trigger -RunLevel Highest -User "SYSTEM" -Force
+
+# Task ausführen
+Start-ScheduledTask -TaskName "UWPUpdateTest"
